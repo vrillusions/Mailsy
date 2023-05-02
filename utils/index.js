@@ -1,4 +1,5 @@
 import axios from "axios";
+import { existsSync } from "fs";
 import fs from "fs/promises";
 import copy from "./copy.js";
 import { Low, JSONFile } from "lowdb";
@@ -7,10 +8,18 @@ import chalk from "chalk";
 import path from "path";
 import { fileURLToPath } from "url";
 import open from "open";
+import envPaths from 'env-paths';
 
-const dirname = path.dirname(fileURLToPath(import.meta.url));
+const paths = envPaths('Mailsy');
 
-const adapter = new JSONFile(path.join(dirname, "../data/account.json"));
+const dirname = paths.data;
+if (!existsSync(dirname)) {
+    await fs.mkdir(dirname, {
+        recursive: true,
+    })
+}
+
+const adapter = new JSONFile(path.join(dirname, "account.json"));
 
 const db = new Low(adapter);
 
@@ -142,7 +151,7 @@ const deleteAccount = async () => {
     });
 
     // delete the account.json file
-    await fs.unlink(path.join(dirname, "../data/account.json"));
+    await fs.unlink(path.join(dirname, "account.json"));
 
     // stop the spinner
     spinner.stop();
@@ -215,10 +224,10 @@ const openEmail = async (email) => {
     );
 
     // write the email html content to a file
-    await fs.writeFile(path.join(dirname, "../data/email.html"), data.html[0]);
+    await fs.writeFile(path.join(dirname, "email.html"), data.html[0]);
 
     // open the email html file in the browser
-    await open(path.join(dirname, "../data/email.html"));
+    await open(path.join(dirname, "email.html"));
 
     // stop the spinner
     spinner.stop();
